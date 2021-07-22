@@ -1,24 +1,23 @@
-# 3. Circuito e programa com sensor de temperatura
 
 Esse projeto consiste na utilização da função ```analogRead```  juntamente com o sensor de temperatura visando aplicações do mundo real.
 
-O sensor de temperatura  é um componente eletrônico capaz de medir a temperatura ao seu redor. Este dispositivo é composto por diodos sensíveis a temperatura. Assim, quando há uma mudança nessa grandeza, a tensão que passa pelo sensor é modificada. Com isso, é possível criar uma escala para converter a tensão que o Arduino recebe em uma escala de temperatura, como Celsius, Fahrenheit e Kelvin. O sensor LM35, por exemplo, apresenta uma taxa de variação conhecida de 10mV/°C e lê valores de -55°C até 150°C, com uma precisão de ± 0.5°C a 25°C.
+O sensor de temperatura  é um componente eletrônico capaz de medir a temperatura ao seu redor. Este dispositivo é composto por diodos sensíveis à temperatura. Assim, quando há uma mudança nessa grandeza, a tensão que passa pelo sensor é modificada. Com isso, é possível criar uma escala para converter a tensão que o NodeMCU recebe em uma escala de temperatura, como Celsius, Fahrenheit e Kelvin. O sensor LM35, por exemplo, apresenta uma taxa de variação conhecida de 10mV/°C e lê valores de -55°C até 150°C, com uma precisão de ± 0.5°C a 25°C.
 
-Portanto, esses sensores conseguem medir variáveis como enchimento e altura sem ter que entrar em contato com os elementos do meio, o que é uma grande vantagem quando comparado com outros tipos de sensores. Uma outra vantagem é que o sensor ultrassônico não possui sua operação prejudicada pela transparência, poeira, sujeira ou vapores/gases presentes no ambiente.  Desde que o objeto reflita as ondas sonoras, é possível usar um sensor ultrassônico independentemente de seu acabamento superficial ou cor. Existem sensores que podem medir distâncias de dezenas de metros com ótima precisão. Devido a todas essas características, os sensores ultrassônicos são amplamente utilizados na indústria e em várias aplicações de robótica e automação.
+A seguir, temos algumas das principais aplicações do sensor:
+* Regulação da temperatura de um ar-condicionado;
+* Medição da temperatura corpórea nos termômetros;
+* Auxílio em processos industriais dependentes de temperatura;
+* Regulação da temperatura de _freezers_;
 
-A seguir, algumas das principais aplicações do sensor:
-* Detecção de objetos e verificação de presença;
-* Medição de altura e largura;
-* Medição de níveis de enchimento;
-* Posicionamento de sistemas robóticos;
-* Correção de rota de robôs e outros mecanismos móveis como carros de controle remoto.
 
-O circuito envolvendo o sensor ultrassônico envolve as seguintes competências trabalhadas no módulo 1:
+Seja criativo para pensar em outras aplicações, como regular temperatura do carro/abrir as janelas caso precise deixar seu _pet_ sozinho!
 
-- [x] Leitura Digital
-- [x] Escrita Digital
+O circuito envolvendo o sensor de temperatura envolve as seguintes competências trabalhadas no módulo 1:
 
-> Nesse projeto você irá aprender a utilizar o ultrassônico, juntamente com o processo de escrita digital com a função  ```digitalWrite```.
+- [x] Leitura Analógica
+- [x] Escrita Analógica
+
+> Nesse projeto você irá aprender a utilizar o sensor de temperatura, juntamente com o processo de escrita analógica com a função  ```analogWrite```.
 
 ## Conteúdo
 - [Materiais Necessários](#materiais-necessários)
@@ -27,66 +26,85 @@ O circuito envolvendo o sensor ultrassônico envolve as seguintes competências 
 
 ## Materiais Necessários
 1. NodeMCU
-2. 1 Sensor ultrassônico HC-SR04
-3. 1 LED
-4. 1 Resistor de 220Ω
+2. 1 Sensor de temperatura LM35
+3. 1 LED RGB
+4. 3 Resistores de 220Ω
 5. Protoboard
 6. Jumpers
-7. Regulador de tensão 7803
-8. Fonte de alimentação (Usamos uma bateria de 9V)
 
 ## Montagem do Circuito
 O circuito deve ser montado como mostra a figura abaixo, representado na protoboard.
 
 ![Protoboard](assets/protoboard.png)
 
-É necessário conectar um terminal do LED em um pino digital do NODEMCU, pois através dessa conexão, é possível, por conta do pino ser digital, controlar o envio de 5V ou 0V para o LED (ligando/desligando).
+É necessário conectar os 3 terminais menores do LED em saídas PWM do NODEMCU, com um resistor de 220Ω entre as conexões (para limitar a corrente), pois através dessa conexão, é possível, por conta do pino ser PWM, controlar o envio de diferentes valores de tensão para os terminais do LED, assim modificando sua cor.
 
-O outro terminal, deve ser conectado a um resistor de 220Ω limitador de corrente e, em seguida, ir direto para o GND.
+Já o terminal maior, deve ser conectado ao VCC caso o LED seja ânodo comum, ou ao GND caso seja cátodo comum.
 
-O sensor de presença é uma entrada que gera um sinal digital e por esse mesmo motivo o terminal XXX do sensor deve ser conectado a um pino digital do ESP. Os outros terminais devem ser conectados no VCC e no GND.
+O sensor de temperatura é uma entrada que gera um sinal analógico e por esse mesmo motivo o terminal do meio do sensor deve ser conectado a um pino PWM do ESP. Os outros terminais devem ser conectados no VCC e no GND, conforme a figura abaixo:
 
-**Nota: Na montagem do circuito é importante ter atenção em relação à vinculação de terras. Todos os GNDs devem estar conectados, para que o circuito tenha uma única referência. Caso os GNDs não estejam vinculados, haverá um erro de medição do sensor!**
+![Terminais](assets/terminais.png)
+
 
 ## O código do Circuito
 
 Use o código que está em [code](code/code.ino) ou copie o código abaixo:
  
 ```C++
-#include "Ultrasonic.h" 
-const int echoPin = 4; 
-const int trigPin = 5;
+//Pino do sensor de temperatura
+const int LM35 = 17;      //A0
 
-Ultrasonic ultrasonic(trigPin,echoPin); 
+//Pinos das cores
+const int redPin    = 4;  //D2
+const int greenPin  = 5;  //D1
+const int bluePin   = 16; //D0
 
-int distancia; 
-String result;
+//Pino do led
+const int led = 2;        //D4
 
-void setup(){
-  pinMode(echoPin, INPUT); 
-  pinMode(trigPin, OUTPUT); 
-  Serial.begin(115200);
+
+float temperatura;
+
+void ledColor(int temperatura) {
+  if(temperatura < 20){
+    digitalWrite(redPin, 0);
+    digitalWrite(greenPin, 0);
+    digitalWrite(bluePin, 255);
+  }else if(temperatura >= 20 and temperatura <= 70){
+    digitalWrite(redPin, 0);
+    digitalWrite(greenPin, 255);
+    digitalWrite(bluePin, 0);
+  }else if(temperatura > 70){
+    digitalWrite(redPin, 255);
+    digitalWrite(greenPin, 0);
+    digitalWrite(bluePin, 0);
   }
-void loop(){
-  
-  hcsr04(); 
-  Serial.print("Distancia "); 
-  Serial.print(result);
-  Serial.println("cm"); 
-  
 }
-void hcsr04(){
-    digitalWrite(trigPin, LOW); 
-    delayMicroseconds(2); 
-    digitalWrite(trigPin, HIGH); 
-    delayMicroseconds(10); 
-    digitalWrite(trigPin, LOW); 
-    
-    distancia = (ultrasonic.Ranging(CM)); 
-    result = String(distancia); 
-    delay(500);
- }
+
+
+void setup() {
+  pinMode(redPin,OUTPUT);
+  pinMode(greenPin,OUTPUT);
+  pinMode(bluePin,OUTPUT);
   
+  pinMode(led,OUTPUT);
+
+  pinMode(LM35, INPUT);
+  
+  Serial.begin(115200);
+}
+
+ 
+void loop() {
+  temperatura = map(analogRead(LM35), 0, 1023, 0, 150);
+
+  ledColor(temperatura);
+  
+  Serial.print("Temperatura: ");
+  Serial.println(temperatura);
+  
+  delay(2000);
+}
 ```
 Diferentemente dos outros circuitos que foram mostrados nesse módulo, esse circuito precisa de uma biblioteca em específico: [``Ultrasonic.h``](library/Ultrasonic.zip) **Clique no link ao lado e realize o download da biblioteca antes de prosseguir para os próximos passos.**
 
