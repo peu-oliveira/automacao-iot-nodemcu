@@ -1,3 +1,4 @@
+# 3. Circuito e programa com sensor de temperatura
 
 Esse projeto consiste na utilização da função ```analogRead```  juntamente com o sensor de temperatura visando aplicações do mundo real.
 
@@ -10,7 +11,7 @@ A seguir, temos algumas das principais aplicações do sensor:
 * Regulação da temperatura de _freezers_;
 
 
-Seja criativo para pensar em outras aplicações, como regular temperatura do carro/abrir as janelas caso precise deixar seu _pet_ sozinho!
+Seja criativo para pensar em outras aplicações!
 
 O circuito envolvendo o sensor de temperatura envolve as seguintes competências trabalhadas no módulo 1:
 
@@ -37,13 +38,13 @@ O circuito deve ser montado como mostra a figura abaixo, representado na protobo
 
 ![Protoboard](assets/protoboard.png)
 
-É necessário conectar os 3 terminais menores do LED em saídas PWM do NODEMCU, com um resistor de 220Ω entre as conexões (para limitar a corrente), pois através dessa conexão, é possível, por conta do pino ser PWM, controlar o envio de diferentes valores de tensão para os terminais do LED, assim modificando sua cor.
+É necessário conectar os 3 terminais menores do LED em saídas PWM do NODEMCU, com um resistor de 220Ω entre as conexões (para limitar a corrente), pois através dessa conexão é possível, por conta do pino ser PWM, controlar o envio de diferentes valores de tensão para os terminais do LED, assim modificando sua cor.
 
 Já o terminal maior, deve ser conectado ao VCC caso o LED seja ânodo comum, ou ao GND caso seja cátodo comum.
 
-O sensor de temperatura é uma entrada que gera um sinal analógico e por esse mesmo motivo o terminal do meio do sensor deve ser conectado a um pino PWM do ESP. Os outros terminais devem ser conectados no VCC e no GND, conforme a figura abaixo:
+O sensor de temperatura é uma entrada que gera um sinal analógico e por esse mesmo motivo o terminal do meio do sensor deve ser conectado a um pino analógico do NodeMCU. Os outros terminais devem ser conectados no VCC e no GND, conforme a figura abaixo:
 
-![Terminais](assets/terminais.png)
+![Terminais](assets/lm35.png)
 
 
 ## O código do Circuito
